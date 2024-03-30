@@ -5,7 +5,7 @@ class Radon(Scene):
         self.camera.background_color = WHITE
         title = Tex(r'Radon$\textquotesingle$s Theorem', color = GREY, font_size = 24)
         self.play(title.animate.move_to([0,3.5,0]))
-        thm1 = Tex(r'Let $A$ be a set of $d+2$ points in $\mathbf{R}^d$.', color = BLACK, font_size = 32)
+        thm1 = Tex(r'Let $A$ be a set of $d+2$ points in $\mathbb{R}^d$.', color = BLACK, font_size = 32)
         self.play(thm1.animate.move_to([0,3,0]))
         self.wait(1)
         
@@ -70,3 +70,20 @@ class Radon(Scene):
         self.play(subsets.animate)
         self.play(intersection.animate)
         self.wait(2)
+        
+        e1 = Ellipse(width = 1, height = 3.4, color = GREEN)
+        e2 = e1.copy()
+        A1 = DashedVMobject(e1, num_dashes=15, dashed_ratio=.25).rotate(PI/4)
+        A1lbl = Tex(r'$A_1$', color=BLUE, font_size=28).move_to([-5,1.5,0])
+        A2 = DashedVMobject(e2, num_dashes=15, dashed_ratio=.25).rotate(-PI/4)
+        A2lbl = Tex(r'$A_2$', color=BLUE, font_size=28).move_to([-3,1.5,0])
+        A1.move_to([-4,0,0])
+        A2.move_to([-4,0,0])
+        self.play(A1.animate, A1lbl.animate)
+        self.play(A2.animate, A2lbl.animate)
+        
+        A1conv = Line(d2, d3)
+        self.play(A1conv.animate)
+        
+        A2conv = Line(d1, d4)
+        self.play(A2conv.animate)
