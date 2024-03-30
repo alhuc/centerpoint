@@ -84,6 +84,15 @@ class Radon(Scene):
         
         A1conv = Line(d2, d3)
         self.play(A1conv.animate)
-        
         A2conv = Line(d1, d4)
         self.play(A2conv.animate)
+        mid = Dot(color=ORANGE, radius=0.1).move_to([-4,0,0])
+        midlbl = Tex(r'$\textbf{x}$', color=ORANGE, font_size=32).move_to([-4,0.3,0])
+        self.play(mid.animate, midlbl.animate)
+        
+        arr = Arrow(start=DOWN*1.8, end=UP*.75, color = ORANGE).move_to([-4,-1.3,0])
+        arrlbl = Tex(r'$conv(A_1)\cap conv(A_2) \neq \varnothing$', color=BLACK, font_size=28).move_to([-4,-2.5,0])
+        radonpointlbl = Tex(r'$x$ is a \underline{Radon point}', color=BLACK, font_size=28).move_to([-4,-2.5,0])
+        self.play(arr.animate, arrlbl.animate)
+        self.play(ReplacementTransform(arrlbl, radonpointlbl))
+        self.wait(2)
