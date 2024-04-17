@@ -1,8 +1,9 @@
 from matplotlib.backend_bases import MouseButton
 import matplotlib.pyplot as plt
 import numpy as np
-import itertools
+from itertools import combinations, permutations
 from scipy.spatial import ConvexHull
+import math
 
 def tellme(s):
     print(s)
@@ -17,41 +18,56 @@ def create_pts(plt):
         plt.scatter(x=i[0], y=i[1])
     return pt_set   
 
+def gen_permutations(pt_set, hspace_cond):
+    filtered_perms = []
+    """ignore any permutations < hspace_cond"""
+    for r in range(math.ceil(hspace_cond), len(pt_set)+1):
+        combo_r = combinations(pt_set, r)
+        for comb in combo_r:
+            perm_r = permutations(comb)
+            """extend unpacks the sublists of the list comprehensions, adding each to assinged list"""
+            filtered_perms.extend([list(perm) for perm in perm_r])
+    return filtered_perms
+
 def main(): 
     plt.figure()
     plt.xlim(0, 1)
     plt.ylim(0, 1)
     pt_set = create_pts(plt)
     hspace_cond = 2/3 * len(pt_set)
-    pt_permutations = list(itertools.permutations(pt_set))
+    pt_permutations = gen_permutations(pt_set, hspace_cond)
     valid_sets = []
     for perm in pt_permutations: 
-        # perm denotes convex closure
-        # discard perms that fail to meet 2/3 * n 
+        """perm denotes convex closure
+           discard perms that fail to meet 2/3 * n """
         if len(perm) < hspace_cond: 
             continue
-        # normal equations in 2D list:
-        # [ x, y, offset] 
+        """normal equations in 2D list:[ x, y, offset] """
         hull_eq = ConvexHull(perm).equations
         
-        # find family of compact convex sets C that satisfy hspace_cond
-        # eq (hyperplane) = line in 2D = [ x , y , offset]
-        ## line test
+        """find family of compact convex sets C that satisfy hspace_cond
+           eq (hyperplane) = line in 2D = [ x , y , offset]"""
         for eq in hull_eq: 
             a, b, c = eq
-            eq_count = 0 
-            for pt in (set(pt_set) - set(perm)):
+            eq_count = 0
+            """subset pt_set: compare perm elements against pt_set, axis=1 groups by row ((x, y) pair)
+                          ~ takes subset of entries that are false"""
+            pts_not_in_perm = pt_set[~np.isin(pt_set, perm).all(axis=1)] 
+            for pt in pts_not_in_perm:
                 x, y = pt 
+                ## line test
                 if (a*x + b*y <= c):
                     eq_count += 1
-            if eq_count == 0 and (eq not in valid_sets):
+            # FIXME: condition evaluation never adds an eq to valid_sets
+            if eq_count == 0 and (len(valid_sets) != 0 and np.isin(valid_sets, eq, invert = True).all(axis = 1)):
+                """invert = True inverts logic : element not in test_elements"""
                 valid_sets.append(eq)
-        #print(hull_eq)
-        #break
-    plt.show()
+        plt.show()
+        return valid_sets
 
-# FIXME: This is for drawing convex closures
-# Example: plt.fill(points[hull.vertices,0], points[hull.vertices,1], 'r', lw=2)
+#This is for drawing convex closures
+#Example: plt.fill(points[hull.vertices,0], points[hull.vertices,1], 'r', lw=2)
 
 if __name__ == '__main__': 
-    main()
+    valid_sets = main()
+    print(valid_sets)
