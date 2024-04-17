@@ -21,7 +21,7 @@ def create_pts(plt):
 def gen_combinations(pt_set, hspace_cond):
     filtered_combs = []
     """ignore any |combinations| < hspace_cond"""
-    for i in range(math.ceil(hspace_cond), len(pt_set)):
+    for i in range(math.ceil(hspace_cond), len(pt_set)+1):
         combo_r = combinations(pt_set, i)
         filtered_combs.extend([list(comb) for comb in combo_r])
     return filtered_combs
@@ -33,8 +33,10 @@ def main():
     pt_set = create_pts(plt)
     hspace_cond = 2/3 * len(pt_set)
     pt_combinations = gen_combinations(pt_set, hspace_cond)
-    valid_sets = []
+    valid_combs = []
+    print(pt_combinations)
     for comb in pt_combinations: 
+        print(comb)
         """normal equations in 2D list:[ x, y, offset] """
         hull_eq = ConvexHull(comb).equations
         
@@ -51,18 +53,22 @@ def main():
                 ## line test
                 if (a*x + b*y <= c):
                     eq_count += 1
-            # FIXME: condition evaluation never adds an eq to valid_sets
-            if eq_count == 0 and (len(valid_sets) != 0 and np.isin(valid_sets, eq, invert = True).all(axis = 1)):
+            if eq_count == 0:
                 ## never entered
                 print("inside append")
-                valid_sets.append(eq)
-        print(valid_sets)
-        plt.show()
-        return valid_sets
+                valid_combs.append(comb)
+    unique_valid_combs = []
+    for comb in valid_combs:
+        if not any(np.array_equal(comb, unique) for unique in unique_valid_combs):
+            unique_valid_combs.append(comb)
+#    unique_valid_combs = np.unique(valid_combs,axis=0)
+    print(unique_valid_combs)
+    plt.show()
+    return valid_combs
 
 #This is for drawing convex closures
 #Example: plt.fill(points[hull.vertices,0], points[hull.vertices,1], 'r', lw=2)
 
 if __name__ == '__main__': 
-    valid_sets = main()
-    print(valid_sets)
+    main()
+    #print(valid_sets)
