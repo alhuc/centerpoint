@@ -1,7 +1,7 @@
 from matplotlib.backend_bases import MouseButton
 import matplotlib.pyplot as plt
 import numpy as np
-from itertools import combinations, permutations
+from itertools import combinations
 from scipy.spatial import ConvexHull
 import math
 
@@ -18,16 +18,13 @@ def create_pts(plt):
         plt.scatter(x=i[0], y=i[1])
     return pt_set   
 
-def gen_permutations(pt_set, hspace_cond):
-    filtered_perms = []
-    """ignore any permutations < hspace_cond"""
-    for r in range(math.ceil(hspace_cond), len(pt_set)+1):
-        combo_r = combinations(pt_set, r)
-        for comb in combo_r:
-            perm_r = permutations(comb)
-            """extend unpacks the sublists of the list comprehensions, adding each to assinged list"""
-            filtered_perms.extend([list(perm) for perm in perm_r])
-    return filtered_perms
+def gen_combinations(pt_set, hspace_cond):
+    filtered_combs = []
+    """ignore any |combinations| < hspace_cond"""
+    for i in range(math.ceil(hspace_cond), len(pt_set)):
+        combo_r = combinations(pt_set, i)
+        filtered_combs.extend([list(comb) for comb in combo_r])
+    return filtered_combs
 
 def main(): 
     plt.figure()
@@ -35,33 +32,31 @@ def main():
     plt.ylim(0, 1)
     pt_set = create_pts(plt)
     hspace_cond = 2/3 * len(pt_set)
-    pt_permutations = gen_permutations(pt_set, hspace_cond)
+    pt_combinations = gen_combinations(pt_set, hspace_cond)
     valid_sets = []
-    for perm in pt_permutations: 
-        """perm denotes convex closure
-           discard perms that fail to meet 2/3 * n """
-        if len(perm) < hspace_cond: 
-            continue
+    for comb in pt_combinations: 
         """normal equations in 2D list:[ x, y, offset] """
-        hull_eq = ConvexHull(perm).equations
+        hull_eq = ConvexHull(comb).equations
         
         """find family of compact convex sets C that satisfy hspace_cond
            eq (hyperplane) = line in 2D = [ x , y , offset]"""
         for eq in hull_eq: 
             a, b, c = eq
             eq_count = 0
-            """subset pt_set: compare perm elements against pt_set, axis=1 groups by row ((x, y) pair)
+            """subset pt_set: compare comb elements against pt_set, axis=1 groups by row ((x, y) pair)
                           ~ takes subset of entries that are false"""
-            pts_not_in_perm = pt_set[~np.isin(pt_set, perm).all(axis=1)] 
-            for pt in pts_not_in_perm:
+            pts_not_in_comb = pt_set[np.isin(pt_set, comb, invert=True).all(axis=1)] 
+            for pt in pts_not_in_comb:
                 x, y = pt 
                 ## line test
                 if (a*x + b*y <= c):
                     eq_count += 1
             # FIXME: condition evaluation never adds an eq to valid_sets
             if eq_count == 0 and (len(valid_sets) != 0 and np.isin(valid_sets, eq, invert = True).all(axis = 1)):
-                """invert = True inverts logic : element not in test_elements"""
+                ## never entered
+                print("inside append")
                 valid_sets.append(eq)
+        print(valid_sets)
         plt.show()
         return valid_sets
 
