@@ -1,3 +1,4 @@
+import time
 from matplotlib.backend_bases import MouseButton
 from matplotlib.colors import ListedColormap
 import matplotlib.pyplot as plt
@@ -91,7 +92,8 @@ def show_sets(c_sets, plt):
     new_map = ListedColormap(colors)
     for color, pt_comb in enumerate(c_sets):
         # assuming pt_comb are np.arrays
-        plt.fill(pt_comb[:,0], pt_comb[:,1], color = new_map(color), alpha = 0.3)
+        pts = np.asarray(pt_comb)
+        plt.fill(pts[:,0], pts[:,1], color = new_map(color), edgecolor='black', alpha = 0.1)
 
 def main(): 
     plt.figure()
@@ -103,7 +105,7 @@ def main():
     pt_combinations = gen_combinations(pt_set, hspace_cond)
     compact_conv_sets = find_compact_conv_sets(pt_set, pt_combinations)
     print(compact_conv_sets)
-    # show_sets(compact_conv_sets, plt)
+    show_sets(compact_conv_sets, plt)
     plt.show()
 
 
