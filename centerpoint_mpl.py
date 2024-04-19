@@ -66,17 +66,21 @@ def find_compact_conv_sets(pt_set, pt_combinations):
         return unique_valid_combs 
 
     for comb in pt_combinations: 
-        """normal equations in 2D list:[ [x, y, offset] , ... , ] """
+        """normal equations in 2D list:[ x_norm, y_norm, offset] , ... , ]
+               - x_norm, y_norm form a normal vector
+               - offset : scalar multiple applied to [x, y] normal vector to get to origin
+        """
         hull_eq = ConvexHull(comb).equations
-        """find family of compact convex sets C that satisfy hspace_cond
-           eq (hyperplane) = line in 2D = [ x , y , offset]"""
+        """find family of compact convex sets C that satisfy hspace_cond"""
         for eq in hull_eq: 
-            a, b, c = eq
+            """unpack -offset to account for """
+            x_norm, y_norm, offset = eq
+            offset = np.negative(offset)
             eq_count = 0
             pts_not_in_comb = pt_set[np.isin(pt_set, comb, invert=True).all(axis=1)] 
             for pt in pts_not_in_comb:
                 x, y = pt 
-                if (a*x + b*y <= c):
+                if x_norm*(x-x_norm*offset)+y_norm*(y-y_norm*offset) > 0 :
                     eq_count += 1
             if eq_count == 0:
                 valid_combs.append(comb)
