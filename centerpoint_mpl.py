@@ -24,7 +24,7 @@ def create_pts(plt):
     tellme('Select $n$ points. Right click to remove last added. Press anything else to finish selection. Esc to start over')
     pt_set = np.asarray(plt.ginput(-1, timeout=-1, mouse_stop = MouseButton.MIDDLE))
     for i in pt_set:
-        plt.scatter(x=i[0], y=i[1])
+        plt.scatter(x=i[0], y=i[1], zorder = 2)
     return pt_set   
 
 def gen_combinations(pt_set, hspace_cond):
@@ -93,7 +93,7 @@ def show_sets(c_sets, plt):
     for color, pt_comb in enumerate(c_sets):
         # assuming pt_comb are np.arrays
         pts = np.asarray(pt_comb)
-        plt.fill(pts[:,0], pts[:,1], color = new_map(color), edgecolor='black', alpha = 0.1)
+        plt.fill(pts[:,0], pts[:,1], color = new_map(color), edgecolor='black', alpha = 0.1, zorder=1)
 
 def on_key_press(event):
     if event.key == 'escape':
