@@ -21,7 +21,7 @@ def create_pts(plt):
         Description
     """
     pt_set = []
-    tellme('Select $n$ points. Right click to remove last added. Press anything else to finish selection.')
+    tellme('Select $n$ points. Right click to remove last added. Press anything else to finish selection. Esc to start over')
     pt_set = np.asarray(plt.ginput(-1, timeout=-1, mouse_stop = MouseButton.MIDDLE))
     for i in pt_set:
         plt.scatter(x=i[0], y=i[1])
@@ -95,19 +95,28 @@ def show_sets(c_sets, plt):
         pts = np.asarray(pt_comb)
         plt.fill(pts[:,0], pts[:,1], color = new_map(color), edgecolor='black', alpha = 0.1)
 
-def main(): 
-    plt.figure()
-    plt.style.use('fast')
-    plt.xlim(0, 1)
-    plt.ylim(0, 1)
+def on_key_press(event):
+    if event.key == 'escape':
+        update_plot()
+
+def update_plot():
+    plt.cla() 
     pt_set = create_pts(plt)
     hspace_cond = 2/3 * len(pt_set)
     pt_combinations = gen_combinations(pt_set, hspace_cond)
     compact_conv_sets = find_compact_conv_sets(pt_set, pt_combinations)
     print(compact_conv_sets)
     show_sets(compact_conv_sets, plt)
-    plt.show()
+    plt.draw()  
 
+def main(): 
+    fig = plt.figure()
+    plt.style.use('fast')
+    plt.xlim(0, 1)
+    plt.ylim(0, 1)
+    cid = fig.canvas.mpl_connect('key_press_event', on_key_press)
+    update_plot()
+    plt.show()
 
 if __name__ == '__main__': 
     main()
