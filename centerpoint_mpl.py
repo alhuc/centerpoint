@@ -5,7 +5,8 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 from itertools import combinations
-from shapely.geometry import Polygon, GeometryCollection
+from shapely.geometry import Polygon
+from shapely.geometry import intersection_all
 from scipy.spatial import ConvexHull
 import math
 
@@ -48,7 +49,7 @@ def gen_combinations(pt_set, hspace_cond):
         filtered_combs.extend([list(comb) for comb in combo_r])
     return filtered_combs
 
-def find_compact_conv_sets(pt_set, pt_combinations):
+def find_compact_conv_hulls(pt_set, pt_combinations):
     """
     Description
     
@@ -59,8 +60,8 @@ def find_compact_conv_sets(pt_set, pt_combinations):
     pt_combinations:
         Description
     """
-    valid_combs = []
-    
+    #valid_combs = []
+    all_hull_vertices = []
     def _get_unique_combinations(combinations): 
         unique_valid_combs = []
         for comb in combinations:
@@ -74,6 +75,8 @@ def find_compact_conv_sets(pt_set, pt_combinations):
                - offset : scalar multiple applied to [x, y] normal vector to get to origin
         """
         hull = ConvexHull(comb, qhull_options="Qx")
+        """extract ccw-order of hull indices"""
+        hull_vertices = hull.vertices
         hull_eq = hull.equations
         """find family of compact convex sets C that satisfy hspace_cond"""
         for eq in hull_eq: 
@@ -87,10 +90,11 @@ def find_compact_conv_sets(pt_set, pt_combinations):
                 if x_norm*(x-x_norm*offset)+y_norm*(y-y_norm*offset) > 0 :
                     eq_count += 1
             if eq_count == 0:
-                valid_combs.append(comb)
-
-    compact_conv_sets = _get_unique_combinations(valid_combs) 
-    return compact_conv_sets
+                ## TODO: TEST THIS REMOVAL
+                #valid_combs.append(comb)
+                all_hull_vertices.append([comb[i] for i in hull_vertices])
+    compact_conv_hulls = _get_unique_combinations(all_hull_vertices) 
+    return compact_conv_hulls
 
 
 
@@ -106,19 +110,22 @@ def show_sets(c_sets, plt):
        pts = np.asarray(pt_comb)
        plt.fill(pts[:,0], pts[:,1], color = new_map(color), alpha = 0.1, hatch=hatch_styles[hatch_style], zorder=1)
     #print(c_sets)
+
 def on_key_press(event):
     if event.key == 'escape':
         update_plot()
 
-def intersect_geometries(gc):
-    intersections = []
-    geoms = list(gc.geoms)
-    for i in range(len(geoms)):
-        for j in range(i + 1, len(geoms)):
-            intersection = geoms[i].intersection(geoms[j])
-            if not intersection.is_empty:
-                intersections.append(intersection)
-    return GeometryCollection(intersections)
+
+def find_intersection(plt, vertex_set):
+    polygons = [Polygon(conv_closure) for conv_closure in vertex_set]
+    inter_object = intersection_all(polygons)
+    print(inter_object)
+    ## if inter_object isinstance Polygon
+       ## fill region with hatches 
+    ## if inter_object isinstance Point
+        ## put point
+    ## if inter_object isinstance LineString
+        ## draw line 
 
 def update_plot():
     plt.clf() 
@@ -128,12 +135,11 @@ def update_plot():
     pt_set = create_pts(plt)
     hspace_cond = 2/3 * len(pt_set)
     pt_combinations = gen_combinations(pt_set, hspace_cond)
-    compact_conv_sets = find_compact_conv_sets(pt_set, pt_combinations)
-    polygons = [Polygon(pts) for pts in compact_conv_sets]
-    gc = GeometryCollection(polygons)
-    intersection = gc.intersection(gc)
-    print(compact_conv_sets)
-    show_sets(compact_conv_sets, plt)
+    compact_conv_hulls = find_compact_conv_hulls(pt_set, pt_combinations)
+    show_sets(compact_conv_hulls, plt)
+    intersection = find_intersection(plt, compact_conv_hulls)
+    
+    #print(compact_conv_sets)
 
 
 def main(): 
