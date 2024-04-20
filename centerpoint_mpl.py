@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from itertools import combinations
 from shapely.geometry import Polygon
-from shapely.geometry import intersection_all
+import shapely
 from scipy.spatial import ConvexHull
 import math
 
@@ -118,7 +118,7 @@ def on_key_press(event):
 
 def find_intersection(plt, vertex_set):
     polygons = [Polygon(conv_closure) for conv_closure in vertex_set]
-    inter_object = intersection_all(polygons)
+    inter_object = shapely.intersection_all(polygons)
     print(inter_object)
     ## if inter_object isinstance Polygon
        ## fill region with hatches 
