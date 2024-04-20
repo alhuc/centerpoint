@@ -1,11 +1,14 @@
 import time
 from matplotlib.backend_bases import MouseButton
 from matplotlib.colors import ListedColormap
+import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 from itertools import combinations
+from shapely.geometry import Polygon, GeometryCollection
 from scipy.spatial import ConvexHull
 import math
+
 def tellme(s):
     print(s)
     plt.suptitle(s, wrap=True)
@@ -70,10 +73,11 @@ def find_compact_conv_sets(pt_set, pt_combinations):
                - x_norm, y_norm form a normal vector
                - offset : scalar multiple applied to [x, y] normal vector to get to origin
         """
-        hull_eq = ConvexHull(comb).equations
+        hull = ConvexHull(comb, qhull_options="Qx")
+        hull_eq = hull.equations
         """find family of compact convex sets C that satisfy hspace_cond"""
         for eq in hull_eq: 
-            """unpack -offset to account for """
+            """unpack -offset for orientation away from C_i """
             x_norm, y_norm, offset = eq
             offset = np.negative(offset)
             eq_count = 0
@@ -89,35 +93,51 @@ def find_compact_conv_sets(pt_set, pt_combinations):
     return compact_conv_sets
 
 
+
 def show_sets(c_sets, plt):
     ## viridis is just a standard uniform colormap
     cmap = plt.cm.get_cmap('viridis', len(c_sets))
     colors = cmap(np.linspace(0,1, len(c_sets)))
     new_map = ListedColormap(colors)
+    hatch_styles = ['/', '\\', '|', '-', '+', 'x', 'o', 'O', '.', '*']
     for color, pt_comb in enumerate(c_sets):
-        # assuming pt_comb are np.arrays
-        pts = np.asarray(pt_comb)
-        plt.fill(pts[:,0], pts[:,1], color = new_map(color), edgecolor='black', alpha = 0.1, zorder=1)
-
+       hatch_style = color % len(hatch_styles)
+       # assuming pt_comb are np.arrays
+       pts = np.asarray(pt_comb)
+       plt.fill(pts[:,0], pts[:,1], color = new_map(color), alpha = 0.1, hatch=hatch_styles[hatch_style], zorder=1)
+    #print(c_sets)
 def on_key_press(event):
     if event.key == 'escape':
         update_plot()
 
+def intersect_geometries(gc):
+    intersections = []
+    geoms = list(gc.geoms)
+    for i in range(len(geoms)):
+        for j in range(i + 1, len(geoms)):
+            intersection = geoms[i].intersection(geoms[j])
+            if not intersection.is_empty:
+                intersections.append(intersection)
+    return GeometryCollection(intersections)
+
 def update_plot():
-    plt.cla() 
+    plt.clf() 
+    plt.style.use('fast')
+    plt.xlim(0, 1)
+    plt.ylim(0, 1)
     pt_set = create_pts(plt)
     hspace_cond = 2/3 * len(pt_set)
     pt_combinations = gen_combinations(pt_set, hspace_cond)
     compact_conv_sets = find_compact_conv_sets(pt_set, pt_combinations)
+    polygons = [Polygon(pts) for pts in compact_conv_sets]
+    gc = GeometryCollection(polygons)
+    intersection = gc.intersection(gc)
     print(compact_conv_sets)
     show_sets(compact_conv_sets, plt)
-    plt.draw()  
+
 
 def main(): 
     fig = plt.figure()
-    plt.style.use('fast')
-    plt.xlim(0, 1)
-    plt.ylim(0, 1)
     cid = fig.canvas.mpl_connect('key_press_event', on_key_press)
     update_plot()
     plt.show()
