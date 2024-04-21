@@ -16,14 +16,6 @@ def tellme(s):
     plt.draw()
 
 def create_pts(plt):
-    """
-    Description
-    
-    Parameters 
-    ----------
-    plt:
-        Description
-    """
     pt_set = []
     tellme('Select $n$ points. Right click to remove last added. Press anything else to finish selection. Esc to start over')
     pt_set = np.asarray(plt.ginput(-1, timeout=-1, mouse_stop = MouseButton.MIDDLE))
@@ -32,16 +24,6 @@ def create_pts(plt):
     return pt_set   
 
 def gen_combinations(pt_set, hspace_cond):
-    """
-    Description
-    
-    Parameters 
-    ----------
-    pt_set : 
-        Description
-    hspace_cond:
-        Description
-    """
     filtered_combs = []
     """ignore any |combinations| < hspace_cond"""
     for i in range(math.floor(hspace_cond) + 1, len(pt_set)+1):
@@ -50,17 +32,6 @@ def gen_combinations(pt_set, hspace_cond):
     return filtered_combs
 
 def find_compact_conv_hulls(pt_set, pt_combinations):
-    """
-    Description
-    
-    Parameters 
-    ----------
-    pt_set : 
-        Description
-    pt_combinations:
-        Description
-    """
-    #valid_combs = []
     all_hull_vertices = []
     def _get_unique_combinations(combinations): 
         unique_valid_combs = []
@@ -90,8 +61,6 @@ def find_compact_conv_hulls(pt_set, pt_combinations):
                 if x_norm*(x-x_norm*offset)+y_norm*(y-y_norm*offset) <= 0 :
                     other_points_inside += 1
             if other_points_inside == 0:
-                ## TODO: TEST THIS REMOVAL
-                #valid_combs.append(comb)
                 all_hull_vertices.append([comb[i] for i in hull_vertices])
     compact_conv_hulls = _get_unique_combinations(all_hull_vertices) 
     return compact_conv_hulls
@@ -99,17 +68,14 @@ def find_compact_conv_hulls(pt_set, pt_combinations):
 
 
 def show_sets(c_sets, plt):
-    ## viridis is just a standard uniform colormap
     cmap = plt.cm.get_cmap('viridis', len(c_sets))
     colors = cmap(np.linspace(0,1, len(c_sets)))
     new_map = ListedColormap(colors)
     hatch_styles = ['/', '\\', '|', '-', '+', 'x', 'o', 'O', '.', '*']
     for color, pt_comb in enumerate(c_sets):
         hatch_style = color % len(hatch_styles)
-        # assuming pt_comb are np.arrays
         pts = np.asarray(pt_comb)
         plt.fill(pts[:,0], pts[:,1], color = new_map(color), alpha = 0.08, zorder=1)
-    #print(c_sets)
 
 def on_key_press(event):
     if event.key == 'escape':
@@ -128,7 +94,6 @@ def find_intersection(plt, vertex_set):
             all_wiggle_inters.append(inter_object_dir)
         union_inters = shapely.union_all(all_wiggle_inters)
         inter_object = shapely.intersection(union_inters, i)
-    # print(inter_object)
     show_intersection(inter_object, plt, delta)
     
 
@@ -162,12 +127,9 @@ def update_plot():
     hspace_cond = 2/3 * len(pt_set)
     pt_combinations = gen_combinations(pt_set, hspace_cond)
     compact_conv_hulls = find_compact_conv_hulls(pt_set, pt_combinations)
-    # for i in compact_conv_hulls:
-    #     print(i)
     show_sets(compact_conv_hulls, plt)
     intersection = find_intersection(plt, compact_conv_hulls)
     plt.draw()
-    #print(compact_conv_sets)
 
 
 def main(): 
