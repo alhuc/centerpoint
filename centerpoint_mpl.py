@@ -1,11 +1,11 @@
-import time
 from matplotlib.backend_bases import MouseButton
 from matplotlib.colors import ListedColormap
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 from itertools import combinations
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, Point, GeometryCollection, MultiPolygon
+from shapely import affinity
 import shapely
 from scipy.spatial import ConvexHull
 import math
@@ -83,13 +83,13 @@ def find_compact_conv_hulls(pt_set, pt_combinations):
             """unpack -offset for orientation away from C_i """
             x_norm, y_norm, offset = eq
             offset = np.negative(offset)
-            eq_count = 0
+            other_points_inside = 0
             pts_not_in_comb = pt_set[np.isin(pt_set, comb, invert=True).all(axis=1)] 
             for pt in pts_not_in_comb:
                 x, y = pt 
-                if x_norm*(x-x_norm*offset)+y_norm*(y-y_norm*offset) > 0 :
-                    eq_count += 1
-            if eq_count == 0:
+                if x_norm*(x-x_norm*offset)+y_norm*(y-y_norm*offset) <= 0 :
+                    other_points_inside += 1
+            if other_points_inside == 0:
                 ## TODO: TEST THIS REMOVAL
                 #valid_combs.append(comb)
                 all_hull_vertices.append([comb[i] for i in hull_vertices])
@@ -105,10 +105,11 @@ def show_sets(c_sets, plt):
     new_map = ListedColormap(colors)
     hatch_styles = ['/', '\\', '|', '-', '+', 'x', 'o', 'O', '.', '*']
     for color, pt_comb in enumerate(c_sets):
-       hatch_style = color % len(hatch_styles)
-       # assuming pt_comb are np.arrays
-       pts = np.asarray(pt_comb)
-       plt.fill(pts[:,0], pts[:,1], color = new_map(color), alpha = 0.1, hatch=hatch_styles[hatch_style], zorder=1)
+        hatch_style = color % len(hatch_styles)
+        # assuming pt_comb are np.arrays
+        pts = np.asarray(pt_comb)
+        #plt.fill(pts[:,0], pts[:,1], color = new_map(color), alpha = 0.1, hatch=hatch_styles[hatch_style], zorder=1)
+        plt.fill(pts[:,0], pts[:,1], color = new_map(color), alpha = 0.1, zorder=1)
     #print(c_sets)
 
 def on_key_press(event):
@@ -118,14 +119,40 @@ def on_key_press(event):
 
 def find_intersection(plt, vertex_set):
     polygons = [Polygon(conv_closure) for conv_closure in vertex_set]
-    inter_object = shapely.intersection_all(polygons)
-    print(inter_object)
-    ## if inter_object isinstance Polygon
-       ## fill region with hatches 
-    ## if inter_object isinstance Point
-        ## put point
-    ## if inter_object isinstance LineString
-        ## draw line 
+    inter_object = polygons[0]
+    delta = 10e-6
+    wiggle_dir = [[0,delta], [delta,0], [0, -delta], [-delta, 0]]
+    for i in polygons:
+        all_wiggle_inters = []
+        for dir in wiggle_dir:
+            inter_object_dir = affinity.translate(inter_object, xoff=dir[0], yoff=dir[1])
+            all_wiggle_inters.append(inter_object_dir)
+        union_inters = shapely.union_all(all_wiggle_inters)
+        inter_object = shapely.intersection(union_inters, i)
+    # print(inter_object)
+    show_intersection(inter_object, plt, delta)
+    
+
+def show_intersection(inter_object, plt, delta):
+    
+    print("inter_object: ", inter_object)
+    if isinstance(inter_object, Polygon):
+        minx, miny, maxx, maxy = inter_object.bounds
+        print("x: ", maxx-minx)
+        print("y: ", maxy-miny)
+        if(maxx-minx <= delta * 5 and maxy-miny <= delta * 5):
+            show_intersection(Point((maxx+minx)/2, (maxy+miny)/2), plt, delta)
+        x, y = inter_object.exterior.coords.xy
+        plt.fill(x,y, hatch='/')
+    if isinstance(inter_object, GeometryCollection):
+        for i in inter_object.geoms:
+            show_intersection(i, plt, delta)
+    if isinstance(inter_object, MultiPolygon):
+        for i in inter_object.geoms:
+            show_intersection(i, plt, delta)
+    if isinstance(inter_object, Point):
+    #     print(inter_object)
+        plt.scatter(inter_object.x, inter_object.y, s = 100)
 
 def update_plot():
     plt.clf() 
@@ -136,6 +163,8 @@ def update_plot():
     hspace_cond = 2/3 * len(pt_set)
     pt_combinations = gen_combinations(pt_set, hspace_cond)
     compact_conv_hulls = find_compact_conv_hulls(pt_set, pt_combinations)
+    # for i in compact_conv_hulls:
+    #     print(i)
     show_sets(compact_conv_hulls, plt)
     intersection = find_intersection(plt, compact_conv_hulls)
     
