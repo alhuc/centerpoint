@@ -75,7 +75,7 @@ def show_sets(c_sets, plt):
     for color, pt_comb in enumerate(c_sets):
         hatch_style = color % len(hatch_styles)
         pts = np.asarray(pt_comb)
-        plt.fill(pts[:,0], pts[:,1], color = new_map(color), alpha = 0.08, zorder=1)
+        plt.fill(pts[:,0], pts[:,1], color = new_map(color), alpha = 0.05, zorder=1)
 
 def on_key_press(event):
     if event.key == 'escape':
@@ -128,8 +128,6 @@ def update_plot():
         hspace_cond = 2/3 * len(pt_set)
         pt_combinations = gen_combinations(pt_set, hspace_cond)
         compact_conv_hulls = find_compact_conv_hulls(pt_set, pt_combinations)
-        # for i in compact_conv_hulls:
-        #     print(i)
         show_sets(compact_conv_hulls, plt)
         find_intersection(plt, compact_conv_hulls)
     else:
