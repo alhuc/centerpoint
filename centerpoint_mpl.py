@@ -133,8 +133,8 @@ def find_intersection(plt, vertex_set):
     
 
 def show_intersection(inter_object, plt, delta):
-    print("inter_object: ", inter_object)
     colormap = plt.cm.get_cmap('cividis')
+    tellme("Centerpoints WRITE SOMETHING HERE ")
     col = colormap(np.random.rand())
     if isinstance(inter_object, Polygon):
         minx, miny, maxx, maxy = inter_object.bounds
@@ -151,7 +151,6 @@ def show_intersection(inter_object, plt, delta):
         for i in inter_object.geoms:
             show_intersection(i, plt, delta)
     if isinstance(inter_object, Point):
-    #     print(inter_object)
         plt.scatter(inter_object.x, inter_object.y, s = 100, color = col)
 
 def update_plot():
@@ -167,7 +166,7 @@ def update_plot():
     #     print(i)
     show_sets(compact_conv_hulls, plt)
     intersection = find_intersection(plt, compact_conv_hulls)
-    
+    plt.draw()
     #print(compact_conv_sets)
 
 
