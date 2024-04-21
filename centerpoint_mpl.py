@@ -108,8 +108,7 @@ def show_sets(c_sets, plt):
         hatch_style = color % len(hatch_styles)
         # assuming pt_comb are np.arrays
         pts = np.asarray(pt_comb)
-        #plt.fill(pts[:,0], pts[:,1], color = new_map(color), alpha = 0.1, hatch=hatch_styles[hatch_style], zorder=1)
-        plt.fill(pts[:,0], pts[:,1], color = new_map(color), alpha = 0.1, zorder=1)
+        plt.fill(pts[:,0], pts[:,1], color = new_map(color), alpha = 0.08, zorder=1)
     #print(c_sets)
 
 def on_key_press(event):
@@ -120,7 +119,7 @@ def on_key_press(event):
 def find_intersection(plt, vertex_set):
     polygons = [Polygon(conv_closure) for conv_closure in vertex_set]
     inter_object = polygons[0]
-    delta = 10e-6
+    delta = 10e-7
     wiggle_dir = [[0,delta], [delta,0], [0, -delta], [-delta, 0]]
     for i in polygons:
         all_wiggle_inters = []
@@ -134,16 +133,17 @@ def find_intersection(plt, vertex_set):
     
 
 def show_intersection(inter_object, plt, delta):
-    
     print("inter_object: ", inter_object)
+    colormap = plt.cm.get_cmap('cividis')
+    col = colormap(np.random.rand())
     if isinstance(inter_object, Polygon):
         minx, miny, maxx, maxy = inter_object.bounds
         print("x: ", maxx-minx)
         print("y: ", maxy-miny)
-        if(maxx-minx <= delta * 5 and maxy-miny <= delta * 5):
+        if(maxx-minx <= delta * 10 and maxy-miny <= delta * 10):
             show_intersection(Point((maxx+minx)/2, (maxy+miny)/2), plt, delta)
         x, y = inter_object.exterior.coords.xy
-        plt.fill(x,y, hatch='/')
+        plt.fill(x,y, color = col, hatch='\|', alpha = .24)
     if isinstance(inter_object, GeometryCollection):
         for i in inter_object.geoms:
             show_intersection(i, plt, delta)
@@ -152,7 +152,7 @@ def show_intersection(inter_object, plt, delta):
             show_intersection(i, plt, delta)
     if isinstance(inter_object, Point):
     #     print(inter_object)
-        plt.scatter(inter_object.x, inter_object.y, s = 100)
+        plt.scatter(inter_object.x, inter_object.y, s = 100, color = col)
 
 def update_plot():
     plt.clf() 
