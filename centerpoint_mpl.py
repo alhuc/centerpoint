@@ -102,8 +102,6 @@ def show_intersection(inter_object, plt, delta):
     col = colormap(np.random.rand())
     if isinstance(inter_object, Polygon):
         minx, miny, maxx, maxy = inter_object.bounds
-        print("x: ", maxx-minx)
-        print("y: ", maxy-miny)
         if(maxx-minx <= delta * 10 and maxy-miny <= delta * 10):
             show_intersection(Point((maxx+minx)/2, (maxy+miny)/2), plt, delta)
         x, y = inter_object.exterior.coords.xy
