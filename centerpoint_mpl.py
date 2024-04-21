@@ -44,7 +44,7 @@ def gen_combinations(pt_set, hspace_cond):
     """
     filtered_combs = []
     """ignore any |combinations| < hspace_cond"""
-    for i in range(math.ceil(hspace_cond), len(pt_set)+1):
+    for i in range(math.floor(hspace_cond) + 1, len(pt_set)+1):
         combo_r = combinations(pt_set, i)
         filtered_combs.extend([list(comb) for comb in combo_r])
     return filtered_combs
