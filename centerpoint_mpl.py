@@ -99,7 +99,6 @@ def find_intersection(plt, vertex_set):
 
 def show_intersection(inter_object, plt, delta):
     colormap = plt.cm.get_cmap('cividis')
-    tellme("Centerpoints WRITE SOMETHING HERE ")
     col = colormap(np.random.rand())
     if isinstance(inter_object, Polygon):
         minx, miny, maxx, maxy = inter_object.bounds
