@@ -159,13 +159,16 @@ def update_plot():
     plt.xlim(0, 1)
     plt.ylim(0, 1)
     pt_set = create_pts(plt)
-    hspace_cond = 2/3 * len(pt_set)
-    pt_combinations = gen_combinations(pt_set, hspace_cond)
-    compact_conv_hulls = find_compact_conv_hulls(pt_set, pt_combinations)
-    # for i in compact_conv_hulls:
-    #     print(i)
-    show_sets(compact_conv_hulls, plt)
-    intersection = find_intersection(plt, compact_conv_hulls)
+    if not len(pt_set) < 3:
+        hspace_cond = 2/3 * len(pt_set)
+        pt_combinations = gen_combinations(pt_set, hspace_cond)
+        compact_conv_hulls = find_compact_conv_hulls(pt_set, pt_combinations)
+        # for i in compact_conv_hulls:
+        #     print(i)
+        show_sets(compact_conv_hulls, plt)
+        find_intersection(plt, compact_conv_hulls)
+    else:
+        tellme("More than $2$ points required. Press escape to restart.")
     plt.draw()
     #print(compact_conv_sets)
 
