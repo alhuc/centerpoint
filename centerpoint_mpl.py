@@ -71,9 +71,7 @@ def show_sets(c_sets, plt):
     cmap = plt.cm.get_cmap('viridis', len(c_sets))
     colors = cmap(np.linspace(0,1, len(c_sets)))
     new_map = ListedColormap(colors)
-    hatch_styles = ['/', '\\', '|', '-', '+', 'x', 'o', 'O', '.', '*']
     for color, pt_comb in enumerate(c_sets):
-        hatch_style = color % len(hatch_styles)
         pts = np.asarray(pt_comb)
         plt.fill(pts[:,0], pts[:,1], color = new_map(color), alpha = 0.05, zorder=1)
 
